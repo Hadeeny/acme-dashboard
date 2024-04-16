@@ -11,6 +11,7 @@ import {
 import { formatCurrency } from './utils';
 import { db } from './db';
 import { unstable_noStore as noStore } from 'next/cache';
+import { Status } from '@prisma/client';
 
 export async function fetchRevenue() {
   // Add noStore() here to prevent the response from being cached.
@@ -180,19 +181,48 @@ export async function fetchFilteredInvoices(
 
 export async function fetchInvoicesPages(query: string) {
   noStore();
-  try {
-    const count = await sql`SELECT COUNT(*)
-    FROM invoices
-    JOIN customers ON invoices.customer_id = customers.id
-    WHERE
-      customers.name ILIKE ${`%${query}%`} OR
-      customers.email ILIKE ${`%${query}%`} OR
-      invoices.amount::text ILIKE ${`%${query}%`} OR
-      invoices.date::text ILIKE ${`%${query}%`} OR
-      invoices.status ILIKE ${`%${query}%`}
-  `;
+  // try {
+  //   const count = await sql`SELECT COUNT(*)
+  //   FROM invoices
+  //   JOIN customers ON invoices.customer_id = customers.id
+  //   WHERE
+  //     customers.name ILIKE ${`%${query}%`} OR
+  //     customers.email ILIKE ${`%${query}%`} OR
+  //     invoices.amount::text ILIKE ${`%${query}%`} OR
+  //     invoices.date::text ILIKE ${`%${query}%`} OR
+  //     invoices.status ILIKE ${`%${query}%`}
+  // `;
 
-    const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+  //   const totalPages = Math.ceil(Number(count.rows[0].count) / ITEMS_PER_PAGE);
+  //   return totalPages;
+  // } catch (error) {
+  //   console.error('Database Error:', error);
+  //   throw new Error('Failed to fetch total number of invoices.');
+  // }
+  try {
+    // const count = await db.invoice.count({
+    //   where: {
+    //     OR: [
+    //       { customer: { name: { contains: query, mode: 'insensitive' } } },
+    //       { customer: { email: { contains: query, mode: 'insensitive' } } },
+    //       // { amount: { lte: parseFloat(query) } },
+    //       // { createdAt: { lte: query } },
+    //       // { status: { in: } },
+    //     ],
+    //   },
+    // });
+
+    const count = await db.invoice.count({
+      where: {
+        OR: [
+          { customer: { name: { contains: query, mode: 'insensitive' } } },
+          { customer: { email: { contains: query, mode: 'insensitive' } } },
+          { status: { in: ['paid', 'pending'] } },
+        ],
+      },
+    });
+
+    const totalPages = Math.ceil(count / ITEMS_PER_PAGE);
     return totalPages;
   } catch (error) {
     console.error('Database Error:', error);
