@@ -3,7 +3,7 @@ import { UpdateInvoice, DeleteInvoice } from '@/app/ui/invoices/buttons';
 import InvoiceStatus from '@/app/ui/invoices/status';
 import { formatDateToLocal, formatCurrency } from '@/app/lib/utils';
 import { fetchFilteredInvoices } from '@/app/lib/data';
-
+import Highlighter from 'react-highlight-words';
 export default async function InvoicesTable({
   query,
   currentPage,
@@ -33,7 +33,12 @@ export default async function InvoicesTable({
                         height={28}
                         alt={`${invoice.customer.name}'s profile picture`}
                       />
-                      <p>{invoice.customer.name}</p>
+                      <Highlighter
+                        highlightClassName="highlight-query"
+                        searchWords={[query]}
+                        autoEscape={true}
+                        textToHighlight={invoice.customer.name}
+                      />
                     </div>
                     <p className="text-sm text-gray-500">
                       {invoice.customer.email}

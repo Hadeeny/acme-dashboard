@@ -22,13 +22,11 @@ export async function fetchRevenue() {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
-    console.log('Fetching revenue data...');
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // console.log('Fetching revenue data...');
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
     const revenues = await db.revenue.findMany();
 
     // const data = await sql<Revenue>`SELECT * FROM revenue`;
-
-    console.log('Data fetch completed after 1 second.');
 
     return revenues;
   } catch (error) {
@@ -211,13 +209,21 @@ export async function fetchInvoicesPages(query: string) {
     //     ],
     //   },
     // });
+    let statusFilter: Status | undefined;
+    if (Object.values(Status).includes(query as Status)) {
+      statusFilter = query as Status;
+    }
+
+    const statusCheck = statusFilter ? statusFilter : undefined;
 
     const count = await db.invoice.count({
+      // TODO: MAKE STATUS AND AMOUNT FILTERABLE.
+
       where: {
         OR: [
           { customer: { name: { contains: query, mode: 'insensitive' } } },
           { customer: { email: { contains: query, mode: 'insensitive' } } },
-          { status: { in: ['paid', 'pending'] } },
+          { status: statusCheck },
         ],
       },
     });
@@ -237,6 +243,9 @@ export async function fetchInvoiceById(id: string) {
       where: {
         id,
       },
+      // include: {
+      //   customer: true
+      // }
     });
     // const data = await sql<InvoiceForm>`
     //   SELECT

@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.highlight-query {
+  background-color: '#fff';
+}
+
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
