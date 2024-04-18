@@ -29,7 +29,7 @@ export async function createInvoice(formData: FormData) {
     await db.invoice.createMany({
       data: {
         amount: amountInCents,
-        createdAt: date,
+        // createdAt: date,
         status: status,
         customerId,
       },
