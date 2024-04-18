@@ -329,3 +329,11 @@ export async function getUser(email: string) {
     throw new Error('Failed to fetch user.');
   }
 }
+
+export const getUserByEmail = async (email: string) => {
+  try {
+    return await db.user.findUnique({ where: { email } });
+  } catch (error) {
+    return null;
+  }
+};

@@ -2,6 +2,8 @@
 // It describes the shape of the data, and what data type each property should accept.
 // For simplicity of teaching, we're manually defining these types.
 // However, these types are generated automatically if you're using an ORM such as Prisma.
+import z from 'zod';
+
 export type User = {
   id: string;
   name: string;
@@ -86,3 +88,11 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+
+export const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be atleast 8 characters long!' }),
+});
+export type TLoginSchema = z.infer<typeof LoginSchema>;
