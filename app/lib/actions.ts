@@ -5,6 +5,7 @@ import { db } from './db';
 import { Status } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { TCreateFormSchema, createFormSchema } from './definitions';
 
 const FormSchema = z.object({
   id: z.string(),
@@ -16,13 +17,14 @@ const FormSchema = z.object({
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function createInvoice(formData: FormData) {
-  const { amount, customerId, status } = CreateInvoice.parse({
-    amount: formData.get('amount'),
-    customerId: formData.get('customerId'),
-    status: formData.get('status'),
-  });
-  const amountInCents = amount * 100;
+export async function createInvoice(formData: TCreateFormSchema) {
+  const validatedFields = createFormSchema.safeParse(formData);
+  if (!validatedFields.success) {
+    return { error: 'Invalid Field' };
+  }
+  const { amount, customerId, status } = validatedFields.data;
+
+  const amountInCents = Number(amount) * 100;
 
   const date = new Date().toISOString().split('T')[0];
   try {

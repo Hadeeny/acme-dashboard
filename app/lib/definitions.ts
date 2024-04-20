@@ -88,6 +88,13 @@ export type InvoiceForm = {
   amount: number;
   status: 'pending' | 'paid';
 };
+export const createFormSchema = z.object({
+  customerId: z.string(),
+  amount: z.string(),
+  status: z.enum(['pending', 'paid']),
+  // status: z.string(),
+});
+export type TCreateFormSchema = z.infer<typeof createFormSchema>;
 
 export const LoginSchema = z.object({
   email: z.string().email(),

@@ -1,4 +1,9 @@
-import { CustomerField } from '@/app/lib/definitions';
+'use client';
+import {
+  CustomerField,
+  TCreateFormSchema,
+  createFormSchema,
+} from '@/app/lib/definitions';
 import Link from 'next/link';
 import {
   CheckIcon,
@@ -8,10 +13,34 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
 import { createInvoice } from '@/app/lib/actions';
+import { useForm } from 'react-hook-form';
+import z from 'zod';
+import { Status } from '@prisma/client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTransition } from 'react';
+import cn from 'clsx';
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { isSubmitting, errors },
+  } = useForm<TCreateFormSchema>({
+    resolver: zodResolver(createFormSchema),
+  });
+
+  const [isPending, startTransition] = useTransition();
+
+  const onSubmit = async (formData: TCreateFormSchema) => {
+    startTransition(() => {
+      createInvoice(formData).then((data) => {
+        console.log(data);
+      });
+    });
+  };
   return (
-    <form action={createInvoice}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
@@ -21,7 +50,8 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
           <div className="relative">
             <select
               id="customer"
-              name="customerId"
+              disabled={isSubmitting}
+              {...register('customerId')}
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               defaultValue=""
             >
@@ -47,8 +77,10 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
             <div className="relative">
               <input
                 id="amount"
-                name="amount"
+                // name="amount"
                 type="number"
+                {...register('amount')}
+                disabled={isSubmitting}
                 step="0.01"
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
@@ -68,9 +100,11 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               <div className="flex items-center">
                 <input
                   id="pending"
-                  name="status"
-                  type="radio"
                   value="pending"
+                  disabled={isSubmitting}
+                  onClick={() => setValue('status', 'pending')}
+                  {...register('status')}
+                  type="radio"
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
@@ -83,9 +117,11 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               <div className="flex items-center">
                 <input
                   id="paid"
-                  name="status"
                   type="radio"
                   value="paid"
+                  disabled={isSubmitting}
+                  onClick={() => setValue('status', 'paid')}
+                  {...register('status')}
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
@@ -102,11 +138,15 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
       <div className="mt-6 flex justify-end gap-4">
         <Link
           href="/dashboard/invoices"
-          className="flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+          className={cn(
+            'flex h-10 items-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200',
+          )}
         >
           Cancel
         </Link>
-        <Button type="submit">Create Invoice</Button>
+        <Button disabled={isPending} type="submit">
+          Create Invoice
+        </Button>
       </div>
     </form>
   );
